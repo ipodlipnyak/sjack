@@ -1,0 +1,252 @@
+\documentclass{scrreprt}
+%\documentclass{report}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{listings}
+\usepackage{underscore}
+%\usepackage[bookmarks=true]{hyperref}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=black,bookmarksopen=true]{hyperref}
+\usepackage{enumerate}
+\usepackage{xcolor}
+
+\usepackage{tikz}
+\usetikzlibrary{mindmap,trees}
+
+\newcounter{magicrownumbers}
+\newcommand\rownumber{\stepcounter{magicrownumbers}\arabic{magicrownumbers}}
+
+\hypersetup{
+    bookmarks=false,    % show bookmarks bar?
+    pdftitle={Software Requirement Specification},    % title
+    pdfauthor={Yiannis Lazarides},                     % author
+    pdfsubject={TeX and LaTeX},                        % subject of the document
+    pdfkeywords={TeX, LaTeX, graphics, images}, % list of keywords
+    colorlinks=true,       % false: boxed links; true: colored links
+    linkcolor=blue,       % color of internal links
+    citecolor=black,       % color of links to bibliography
+    filecolor=black,        % color of file links
+    urlcolor=purple,        % color of external links
+    linktoc=page            % only page is linked
+}%
+\def\myversion{1.0 }
+\title{%
+\flushright
+\rule{8cm}{1.5pt}\vskip1cm
+\Huge{SOFTWARE REQUIREMENTS\\ SPECIFICATION}\\
+%\vspace{1.5cm}
+%for\\
+%\vspace{1.5cm}
+%Materials Ordering System\\
+\vspace{1.5cm}
+\LARGE{Release 1.0\\}
+%\vspace{1.5cm}
+%\LARGE{Version \myversion approved\\}
+%\vspace{1.5cm}
+%Prepared by Yiannis Lazarides\\
+%\vfill
+%\rule{8cm}{1.5pt}
+}
+\date{}
+%\usepackage{hyperref}
+\begin{document}
+\maketitle
+\tableofcontents
+\chapter{Структура проекта}
+%\begin{quote}
+Библиотеки, фреймворки и пр. используемое в проекте
+%\end{quote}
+%\section{Section two}
+
+\begin{enumerate}[]
+	\item Routing, Api:
+	\begin{enumerate}[-]
+	\item Slim micro-framework \\
+		\url{https://www.slimframework.com/}
+	\end{enumerate}
+
+	\item Basic access authentication:
+	\begin{enumerate}[-]
+		\item Slim-basic-auth middleware \\
+		\url{https://github.com/tuupola/slim-basic-auth}
+	\end{enumerate}
+
+	\item ORM, Event dispatcher:
+	\begin{enumerate}[-]
+		\item Illuminate \\
+		\url{https://github.com/illuminate/database} \\
+		\url{https://laravel.com/docs/5.7/eloquent}
+	\end{enumerate}
+
+	\item Mailer:
+	\begin{enumerate}[-]
+		\item PHPMailer \\
+		\url{https://github.com/PHPMailer/PHPMailer}
+	\end{enumerate}
+
+	\item Templating engine:
+	\begin{enumerate}[-]
+		\item Twig \\
+		\url{https://twig.symfony.com/}
+	\end{enumerate}
+
+	\item Frontend:
+	\begin{enumerate}[-]
+		\item AdminLTE \\
+		\url{https://github.com/almasaeed2010/AdminLTE}
+		\item Webpack bundler \\
+		\url{https://webpack.js.org/}
+		\item Vue.js framework \\
+		\url{https://vuejs.org/}
+	\end{enumerate}
+
+	\item Datamining, Web-Sites Monitoring:
+	\begin{enumerate}[-]
+		\item Requests \\
+		\url{http://docs.python-requests.org}
+%		\item SQLAlchemy \\
+%		\url{https://www.sqlalchemy.org/}
+	\end{enumerate}
+\end{enumerate}
+\chapter{Общее описание проекта}
+Скрипт на питоне будет проверять состояние сайтов из списка урлов в базе, отправляя им http-реквесты. 
+Получение списка страниц для проверки и сохранение ответот производится соответствующими реквестами к RESTful api административной панели.
+Скрипт стартует крон-задачей. За рассылку http-реквестов отвечает библиотека Requests. 
+%Работу с базой данных обеспечивает ORM SQLAlchemy.
+Данные проверяемых страниц хранятся в таблице SMPages.
+
+Для административной панели используется микрофреймворк Slim. Он особенно удобен при создании RESTful api и в будущем его возможности можно будет использовать для координации микросервисов. 
+Особенно - если вдруг потребуется создание демонов на внешних серверах (их нельзя разворачивать на бегете).
+
+Для авторизации запросов используется HTTP Basic authentication. Все запросы к api также проходят эту аутентификацию. 
+Из-за того что передача авторизационных данных идёт открытым текстом необходимо включить https с принудительной переадресацией.
+
+Административная панель содержит следующие формы:
+\begin{enumerate}
+	\item Общие настройки - почтовый адрес для уведомлений, доменное имя сайта, чекбокс для включения https при авторизации
+	\item Список сайтов - просмотр статусов сайтов. 
+		Если та или иная страница сайта имеет статус отличный от 200, 
+		статус сайта будет подсвечен соответсвующим цветом. 
+		Есть возможность удалить все страницы сайта и отредактировать имя домена
+	\item Список страниц - просмотр статусов страниц с сортировкой по статусу и имени, 
+		редактирование и удаление страниц из списка, 
+		фильтр для поиска страниц по имени или урлу.
+		Есть возможность отметить и удалить группу страниц.
+	\item Добавление новой страницы - url, домен сайта, имя/title страницы, использование https. 
+	%	Опционально - тип авторизации(для начала ограничимся HTTP Basic auth), логин и пароль
+	\item Массовый импорт - текстовое поле для построчного перечисления страниц для импорта. 
+		В конце импорта обнаруженные ошибки в импортируемых данных будут отображены в этом же текстовом поле
+\end{enumerate}
+
+В списке страниц статусы будут подсвечиваться красным (404), оранжевым(301,302) и зеленым(200). 
+Если у сайта есть страницы с красным или оранжевым статусом он будет подсвечен соответствующим цветом. Красный в приоритете над оранжевым.
+В случае переадресации можно будет просмотреть конечный адрес.
+
+RESTful api позволяет просматривать (в ответ прийдет application/json) и изменять состояние сайтов из списка в базе.
+В момент обновления состояния той или иной страницы, выстреливает событие. Если новый статус ответа 404 - будет отправлено email уведомление на почтовый ящик администратора.
+
+%Для модуля авторизации в структуре таблиц базы данных заложена возможность реализации role-based access control. 
+%Для модуля авторизации заложена возможность реализации role-based access control. 
+%Каждая группа пользователей имеет ограничение по списку доступных к посещению url-адресов. Соответствие "url:группа" хранится в таблице Permissions. Если соответствие не задано, адрес доступен всем.
+Административная панель разбита на зоны доступа (\href{https://tools.ietf.org/html/rfc7235#section-2.2}{ Realm в терминологии HTTP Basic auth}). При переходе между ними потребуется подтведить авторизацию. 
+Соответствие ``зона доступа : пользователь'' хранится в таблице Permissions.
+В таблице Realms хранится имя зоны доступа и входящие в неё url-адреса.
+
+\chapter{Этапы разработки}
+
+\begin{tabular}{ccl}
+\hline
+№ & Время(ч) & Описание этапа \\
+\hline
+	\rownumber & 2 & Разработка структуры таблиц БД\\
+	\rownumber & 6 & Создание структуры проекта и настройка основных модулей\\
+	\rownumber & 2 & Создание шаблона главной темы административной панели\\
+	\rownumber & 2 & Форма общих настроек\\
+	\rownumber & 3 & Форма просмотра списка сайтов\\
+	\rownumber & 5 & Форма просмотра списка страниц\\
+	\rownumber & 2 & Форма добавления страницы\\
+	\rownumber & 5 & Форма массового импорта\\
+	\rownumber & 4 & Скрипт для проверки состояния страниц\\
+	\rownumber & 6 & Деплой и тестирование на боевом сервере\\
+	\hline \hline
+	$\Sigma$ & 37 & \\
+\hline
+\end{tabular}
+
+\chapter{Mindmap}
+\definecolor{orange}{HTML}{f5f5cc}
+\definecolor{green}{HTML}{199600}
+\pagecolor{orange}
+\begin{tikzpicture}
+  \path[mindmap,
+	concept color=red!40!orange,text=orange,
+	,
+	%concept/.append style={concept color=blue!80,minimum size=3.5cm},
+	grow cyclic,
+	level 1/.append style={level distance=4.8cm,sibling angle=120,minimum size = 2.5cm},
+	level 2/.append style={level distance=3.3cm,sibling angle=45,minimum size = 2cm},
+	level 3/.append style={level distance=2.5cm,sibling angle=45,minimum size = 1.5cm},
+	level 4/.append style={level distance=2cm,sibling angle=45,minimum size = 1cm},
+	every annotation/.style={fill=black!20,scale=1,text width=3cm,
+	text=black,
+	%inner sep = 4mm,
+	outer sep=15mm},
+	]
+	node[concept] (root) {Web-app}
+    [clockwise from=0]
+    child[concept color=blue!40!orange] {
+      node[concept] {Dashboard}
+      [clockwise from=90]
+      child { node[concept] {Настройки} }
+	child{
+		node[concept] 
+		{Проверка сайтов}
+		child{node[concept]{Список сайтов}}
+		child{node[concept]{Список страниц}}
+		child{node[concept]{Новая страница}}
+		child{node[concept]{Массовый импорт}}
+		}
+%      child { 
+%	node[concept] 
+%	{Инструменты}
+%	child{
+%		node[concept] 
+%		{Мониторинг сайтов}
+%		child{node[concept]{Список страниц}}
+%		child{node[concept]{Добавление новой страницы}}
+%		}
+%	}
+    } 
+    child[concept color=green!40!orange] {
+      node[concept] {RESTful Api}
+      [clockwise from=-90]
+      child { node[concept] {Update page} }
+      child { node[concept] {Get all pages} }
+    } 
+    child[concept color=black!40!orange] {
+	    node[concept] (sql) {MySQL}
+	    [clockwise from=225]
+	    child { node[concept] {Config} }
+      child { node[concept] {Users} }
+      child { node[concept] {Realms} }
+      child { node[concept] {Permissions} }
+      child { 
+	node[concept] (pages) {SMPages} 
+	node[annotation,right] at (pages) {
+		SMPages table:
+		\begin{enumerate}[-]
+			\setlength\itemsep{-0.5em}
+			\item	id,
+			\item	page name,
+			\item	site domain,
+			\item	page url,
+			\item	http/https
+%			\item	auth login, 
+%			\item	auth pass 
+		\end{enumerate}
+		}
+	}
+    }; 
+\end{tikzpicture}
+
+% add other chapters and sections to suit
+\end{document}
